@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>React Components Library</title>
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
+
+    <link href='http://fonts.googleapis.com/css?family=Signika:700' rel='stylesheet' type='text/css'>
+    
+    <!-- jQuery -->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    
+    <!-- React -->
+    <script src="//fb.me/react-with-addons-0.11.1.min.js"></script>
+    <script src="//fb.me/JSXTransformer-0.11.1.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js"></script>
+
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-12">
+                <h1 style="font-family: 'Signika', sans-serif;" class="pull-left">
+                    React Component Library
+                </h1>
+                <a class="pull-right btn btn-primary" data-target="#addModal" data-toggle="modal" style="margin-top:20px;">
+                    Add Item
+                </a>
+                <div class="clear" style="clear:both;">&nbsp;</div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="list-group" id="items"></div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12">
+                <p>Hastily Created By <a href="http://leesalminen.com" title="Lee Salminen">Lee Salminen</a></p>
+            </div>
+        </div>
+    </div>
+
+<div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modal" aria-hidden="true" id="modal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content"></div>
+    </div>
+</div>
+
+<div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true" id="addModal">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">
+                <span aria-hidden="true">×</span>
+            </button>
+            <h4 class="modal-title" id="title">Add React Component</h4>
+        </div>
+        <div class="modal-body">
+            <form class="form-horizontal" method="post" id="add" action="http://leesalminen.com/react.php?action=new">
+                <div class="form-group">
+                    <label for="name" class="control-label col-sm-3">Name</label>
+                    <div class="col-sm-9">
+                        <input type="text" maxlength="255" name="name" class="form-control" placholder="Name..." />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="description" class="control-label col-sm-3">Description</label>
+                    <textarea class="col-sm-9" rows="5" name="description"></textarea>
+                </div>
+
+                
+                <div class="form-group">
+                    <label for="url" class="control-label col-sm-3">URL</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="url" class="form-control" placholder="URL..." />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <input name="submit" type="submit" class="btn btn-primary pull-right" value="Add!" />
+                </div>
+            </form>
+        </div>
+    </div>
+  </div>
+</div>
+
+<script type="text/jsx">
+/** @jsx React.DOM */
+
+    var Items = React.createClass({
+        getInitialState: function() {
+            return {data: []};
+        },
+        componentDidMount: function() {
+            $.ajax({
+                url: this.props.url,
+                dataType: 'json',
+                success: function(data) {
+                    this.setState({data: data.message});
+                }.bind(this),
+                error: function(xhr, status, err) {
+                    console.error(this.props.url, status, err.toString());
+                }.bind(this)
+            });
+        },
+        render: function() {
+            return (
+                <div>
+                   {
+                        _.map(this.state.data, function(item, i){
+                            return (
+                        
+                                <Item data={item} />
+                             
+                            );
+                        }.bind(this))
+                    }
+                </div>       
+            );
+        }
+    });
+
+    var Item = React.createClass({
+        render: function() {
+            return (
+                <a 
+                    className="list-group-item" 
+                    id={this.props.data.id}
+                    data-toggle="modal"
+                    data-target="#modal"
+                    href={"http://leesalminen.com/react.php?action=get_item&id=" + this.props.data.id}
+                >
+                    <b>{this.props.data.name}</b>
+                    &nbsp;
+                    <small>{this.props.data.description}</small>
+                </a>
+            );
+        }
+    });
+
+    React.renderComponent(
+    <Items url="http://leesalminen.com/react.php?action=get" />,
+        document.getElementById('items')
+    );
+</script>
+<script>
+$(function() { 
+    //this function removes modal data when hidden, allowing re-use on the same page.
+    $('#modal').on('hidden.bs.modal', function (e) {
+      $(this).removeData('bs.modal');
+    });
+
+    $('form#add').on('submit', function(e) {
+        var _self  = $(this);
+        var url    = _self.attr('action');
+        var method = _self.attr('method');
+        var data   = _self.serialize();
+
+        $.ajax({
+          url: url,
+          type: method,
+          dataType: 'json',
+          data: data,
+          success: function(data) {
+
+            $('#addModal').modal('hide');
+            $('#addModal').find('input, textarea').val('');
+            location.reload();
+
+          },
+          error: function() {
+            alert("AJAX Error!");
+            _this.removeAttr('disabled');
+          }
+        });
+
+        return false;
+    });
+});
+</script>
+</body>
+</html>
