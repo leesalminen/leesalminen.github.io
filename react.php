@@ -9,7 +9,7 @@ class API {
 
 	public function getItems()
 	{
-		$query = $this->db->query('SELECT * from components')->fetchAll(PDO::FETCH_OBJ);
+		$query = $this->db->query('SELECT * from components order by name asc')->fetchAll(PDO::FETCH_OBJ);
 		
 		if(count($query) === 0) 
 		{
